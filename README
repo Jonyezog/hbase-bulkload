@@ -1,0 +1,37 @@
+1.将src目录下的config.properties文件复制到classpath目录下，并修改zk的地址，端口及路径
+2.将lib目录下的jar引入到自己的工程中，同时要引入pom.xml文件中相应的jar
+3.将你的Hadoop环境中的core-site.xml和hdfs-site.xml文件放到自己的classpath中
+core-site.xml和hdfs-site.xml在hadoop环境中的路径/usr/lib/hadoop/etc/hadoop/
+4.config.properties配置文件中配置项说明：
+
+##zookeeper的主机名
+hbase.zookeeper.quorum=n11,n2,n10 
+##zookeeper服务的端口，如果没有改动就是默认的2181
+hbase.zookeeper.property.clientPort=2181
+##hbase在zookeeper上注册的节点名称，如果没有改动，默认就是下面的值 
+zookeeper.znode.parent=hbase-unsecure
+##zip文件在hdfs上的路径前缀，这里我们约定所有数据在hdfs上放置的根目录就是/data_hbase
+hdfs.prefix=hdfs://julong/data_hbase/zip/
+##整理数据方式在HDFS上的目录体系示例如下如下
+/data_hbase
+           /txt
+               /20140701
+                        /10.txt
+                        /12.txt
+           /zip
+               /20140701
+                        /10.zip
+                        /12.zip   
+
+结构说明:/data_hbase/(txt/zip)/日期（格式yyyyMMdd）/(txt/zip文件)                                
+##HBase表的前缀，这里我们预定一个所有HBase表都是以某个前缀开始的          
+hbas.table.prefix=FSN_
+
+
+
+
+
+DeleteTableDemo.java 删除Hbase表的demo
+HDFS.java 从HDFS上获取文件的demo
+QueryDemo.java 调用Hbase查询接口查询数据的Demo
+

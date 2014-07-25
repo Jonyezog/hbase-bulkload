@@ -1,0 +1,33 @@
+option java_package = "com.apache.hbase.coprocessor.generated";
+option java_outer_classname = "ServerQueryProcess";
+option java_generic_services = true;
+option java_generate_equals_and_hash = true;
+option optimize_for = SPEED;
+message QueryRequest {
+  required string gzh = 1;
+  required string start = 2;
+  required string end = 3;
+  optional string fr = 4;
+  optional string qy = 5;
+  optional string wd = 6;
+  optional string sbbm = 7;
+  optional string czr = 8;
+  required string tableName = 9;
+  required string quorums = 10;
+  required uint32 zk_port = 11;
+  required string znode_parent = 12;
+}
+
+message QueryResponse {
+  required bytes retWord = 1;
+}
+
+
+service ServiceQuery {
+  rpc query(QueryRequest)
+    returns (QueryResponse);   
+
+}
+
+
+
