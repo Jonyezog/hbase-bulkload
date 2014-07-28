@@ -42,13 +42,13 @@ public class HBaseKVMapper extends Mapper<LongWritable, Text, ImmutableBytesWrit
 		try {
 			fields = value.toString().split(",");
 		} catch (Exception ex) {
-			context.getCounter("HBaseKVMapper", "PARSE_ERRORS").increment(1);
+			context.getCounter(Driver.MY_COUNTER.PARSE_ERRORS).increment(1);
 			return;
 		}
 
 		// 如果字段数量不正确，记录字段数量不正确的记录数
 		if (fields.length != NUM_FIELDS) {
-			context.getCounter("HBaseKVMapper", "INVALID_FIELD_LEN").increment(1);
+			context.getCounter(Driver.MY_COUNTER.INVALID_FIELD_LEN).increment(1);
 			return;
 		}
 		//设置rowkey(冠字号+时间)
@@ -59,6 +59,6 @@ public class HBaseKVMapper extends Mapper<LongWritable, Text, ImmutableBytesWrit
 		kv = new KeyValue(hKey.get(), SRV_COL_FAM,HColumnEnum.SRV_COL_B.getColumnName(), value.toString().getBytes());
 		// Write KV to HBase
 		context.write(hKey, kv);
-		context.getCounter("HBaseKVMapper", "NUM_MSGS").increment(1);
+		context.getCounter(Driver.MY_COUNTER.NUM_MSGS).increment(1);
 	}
 }

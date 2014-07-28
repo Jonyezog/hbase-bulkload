@@ -70,6 +70,14 @@ public class QueryEndPoint extends ServerQueryProcess.ServiceQuery implements Co
 		config.set("hbase.zookeeper.quorum", request.getQuorums());
 		config.set("hbase.zookeeper.property.clientPort", request.getZkPort()+"");
 		config.set("zookeeper.znode.parent", request.getZnodeParent());
+		LOG.info("query condition qy  :" + request.getQy());
+		LOG.info("query condition fr  :" + request.getFr());
+		LOG.info("query condition czr  :" + request.getCzr());
+		LOG.info("query condition sbbm  :" + request.getSbbm());
+		LOG.info("query condition gzh  :" + request.getGzh());
+		LOG.info("query condition wd  :" + request.getWd());
+		LOG.info("query condition start  :" + request.getStart());
+		LOG.info("query condition end  :" + request.getEnd());
 		try{
 			String startRowkey = addZeroForNum(request.getGzh(),10,"0") + request.getStart();
 			String endRowkey = addZeroForNum(request.getGzh(),10,"9") + request.getEnd();
@@ -133,40 +141,45 @@ public class QueryEndPoint extends ServerQueryProcess.ServiceQuery implements Co
 				ResultScanner rs = table.getScanner(scan);
 				int count = 0;
 				for (Result r : rs) {
-					boolean isRight = true;
+					boolean frRight = true;
+					boolean qyRight = true;
+					boolean sbbmRight = true;
+					boolean czrRight = true;
+					boolean wdRight = true;
+					boolean sjRight = true;
 					String value = new String(r.getValue("cf".getBytes(), "c1".getBytes()));
 					LOG.info("table ["+ tableName +"] query result value  :" + value);
 					String[] datas = value.split(",");
 					//如果法人条件不为空，并且数据中的法人和查询条件中的值不一致，结果为false
 					if(!isEmpty(request.getFr()) && !request.getFr().equals(datas[2])){
-						isRight = false;
+						frRight = false;
 					}
 					//如果区域条件不为空，并且数据中的区域和查询条件中的值不一致，结果为false
 					if(!isEmpty(request.getQy()) && !request.getQy().equals(datas[1])){
-						isRight = false;
+						qyRight = false;
 					}
 					//如果设备编码条件不为空，并且数据中的设备编码和查询条件中的值不一致，结果为false
 					if(!isEmpty(request.getSbbm()) && !request.getSbbm().equals(datas[4])){
-						isRight = false;
+						sbbmRight = false;
 					}
 					//如果操作人条件不为空，并且数据中的操作人和查询条件中的值不一致，结果为false
 					if(!isEmpty(request.getCzr()) && !request.getCzr().equals(datas[5])){
-						isRight = false;
+						czrRight = false;
 					}
 					//如果网点条件不为空，并且数据中的网点和查询条件中的值不一致，结果为false
 					if(!isEmpty(request.getWd()) && !request.getWd().equals(datas[3])){
-						isRight = false;
+						wdRight = false;
 					}
 					long time = Long.parseLong(datas[0]);
 					
 					//判断开始和结束时间
 					if( request.getStart() <=time && time <= request.getEnd() ){
-						isRight = true;
+						sjRight = true;
 					} else {
-						isRight = false;
+						sjRight = false;
 					}
-					LOG.info("table ["+ tableName +"] query status  :" + isRight);
-					if(isRight){
+					if(sjRight && wdRight && frRight && sbbmRight && czrRight && qyRight){
+						LOG.info("table ["+ tableName +"] query status  :" + true);
 						LOG.info("table ["+ tableName +"] query value  :" + value);
 						buffer.append(value);
 						buffer.append("#");

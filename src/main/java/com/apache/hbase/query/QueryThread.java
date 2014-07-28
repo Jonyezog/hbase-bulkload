@@ -99,31 +99,35 @@ public class QueryThread implements Runnable {
 			ResultScanner rs = table.getScanner(scan);
 			int count = 0;
 			for (Result r : rs) {
-				boolean isRight = true;
+				boolean frRight = true;
+				boolean qyRight = true;
+				boolean sbbmRight = true;
+				boolean czrRight = true;
+				boolean wdRight = true;
 				String value = new String(r.getValue("cf".getBytes(), "c1".getBytes()));
 				String[] datas = value.split(",");
 				//如果法人条件不为空，并且数据中的法人和查询条件中的值不一致，结果为false
 				if(!isEmpty(query.getFr()) && !query.getFr().equals(datas[2])){
-					isRight = false;
+					frRight = false;
 				}
 				//如果区域条件不为空，并且数据中的区域和查询条件中的值不一致，结果为false
 				if(!isEmpty(query.getQy()) && !query.getQy().equals(datas[1])){
-					isRight = false;
+					qyRight = false;
 				}
 					
 				//如果设备编码条件不为空，并且数据中的设备编码和查询条件中的值不一致，结果为false
 				if(!isEmpty(query.getSbbm()) && !query.getSbbm().equals(datas[4])){
-					isRight = false;
+					sbbmRight = false;
 				}
 				//如果操作人条件不为空，并且数据中的操作人和查询条件中的值不一致，结果为false
 				if(!isEmpty(query.getCzr()) && !query.getCzr().equals(datas[5])){
-					isRight = false;
+					czrRight = false;
 				}
 				//如果网点条件不为空，并且数据中的网点和查询条件中的值不一致，结果为false
 				if(!isEmpty(query.getWd()) && !query.getWd().equals(datas[3])){
-					isRight = false;
+					wdRight = false;
 				}
-				if(isRight){
+				if(wdRight && frRight && sbbmRight && czrRight && qyRight){
 					this.results.add(value);
 					count ++;
 				}

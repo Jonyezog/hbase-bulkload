@@ -3,7 +3,9 @@ package com.apache.hbase.query;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
+import org.apache.hadoop.hbase.client.HTable;
 import org.apache.log4j.Logger;
 
 import com.apache.hbase.query.util.PropertiesHelper;
@@ -71,6 +73,10 @@ public class HBaseUtils {
 			hbaseAdmin.disableTable(tableName);
 			hbaseAdmin.deleteTable(tableName);
 			LOG.info(tableName + " delete success!");
+			HTable table = new HTable(conf, "FSN_TOTAL");  
+	        Delete del = new Delete(tableName.getBytes());  
+	        table.delete(del);  
+	        LOG.info("delete ["+tableName+"] record success!");
 			//删除HDFS上的额zip文件
 			HDFS.deleteFileDir(this.hdfsPrefix + day);
 			LOG.info("[" +this.hdfsPrefix + day + "] dir delete success!");
