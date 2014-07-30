@@ -31,12 +31,13 @@ public class QueryClient {
 				.setStart(1404144147)
 				.setEnd(1404576269)
 				.setGzh("XVZQ")
-				.setQuorums("n11,n2,n10")
+//				.setQuorums("n11,n2,n10")
 				.setTableName("FSN_20140711")
 				.setFr("28")
 				.setQy("00")
-				.setZkPort(2181)
-				.setZnodeParent("/hbase-unsecure").build();
+//				.setZkPort(2181)
+//				.setZnodeParent("/hbase-unsecure")
+				.build();
 		QueryResponse resp = null;
 		try {
 			HTable table = new HTable(config, "FSN_20140711");

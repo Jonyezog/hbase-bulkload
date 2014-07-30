@@ -6,29 +6,18 @@ import java.util.List;
 import java.util.Map;
 
 import org.apache.hadoop.conf.Configuration;
-import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.HRegionInfo;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.coprocessor.Batch;
 import org.apache.hadoop.hbase.ipc.BlockingRpcCallback;
 import org.apache.hadoop.hbase.ipc.ServerRpcController;
-import org.apache.log4j.Logger;
 
 import com.apache.hbase.coprocessor.generated.ServerQueryProcess.QueryRequest;
 import com.apache.hbase.coprocessor.generated.ServerQueryProcess.QueryResponse;
 import com.apache.hbase.coprocessor.generated.ServerQueryProcess.ServiceQuery;
 import com.google.protobuf.ByteString;
 
-/**
- * 查询线程
- * 
- * @author zhangfeng
- * 
- */
-public class FuzzyQueryThread implements Runnable {
-
-	private static final Logger LOG = Logger.getLogger(FuzzyQueryThread.class);
-
-	private static Configuration conf = null;
+public class CoprocessorQueryThread implements Runnable {
 
 	private QueryStatusManager manager;
 
@@ -37,55 +26,49 @@ public class FuzzyQueryThread implements Runnable {
 	private List<String> results;
 
 	private QueryObject query;
-
+	
+	private HRegionInfo region;
+	
 	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-
-	private String quorums;
-
-	private int port;
-
-	private String znodeParent;
-
-
-	public FuzzyQueryThread(QueryStatusManager manager, String tableName,
-			List<String> results, QueryObject query,final String quorums, final int port, final String znodeParent,final String timeout) {
+	
+	private Configuration conf ;
+	
+	private String serverName;
+	
+	private String tn ;
+	
+	public CoprocessorQueryThread(String tn,Configuration conf,QueryStatusManager manager, String tableName,
+			List<String> results, QueryObject query,HRegionInfo region,String serverName) {
 		this.manager = manager;
-		this.tableName = tableName;
-		this.results = results;
 		this.query = query;
-		this.quorums = quorums;
-		this.port = port;
-		this.znodeParent = znodeParent;
-		conf = HBaseConfiguration.create();
-		conf.set("hbase.zookeeper.quorum", this.quorums);
-		conf.set("hbase.zookeeper.property.clientPort", this.port+"");
-		conf.set("zookeeper.znode.parent", "/" +this.znodeParent);
-		conf.set("hbase.rpc.timeout", timeout);
+		this.results = results;
+		this.tableName = tableName;
+		this.region = region;
+		this.conf = conf;
+		this.serverName = serverName;
+		this.tn = tn;
 	}
-
+	
+	
 	public void run() {
 		HTable table = null;
 		try {
+			table = new HTable(conf, tn);
 			long starttime = format.parse(query.getStart()).getTime() / 1000;
 			long endtime = format.parse(query.getEnd()).getTime() / 1000;
+			byte[] startkey = region.getStartKey();
+			byte[] endkey = region.getEndKey();		
+			//构造查询条件
 			final QueryRequest req = QueryRequest.newBuilder()
-					.setStart(starttime)
-					.setEnd(endtime)
+					.setStart(starttime).setEnd(endtime)
 					.setGzh(query.getGzh())
-					//.setQuorums(this.quorums)
-					.setTableName(this.tableName)
-					.setFr(query.getFr())
-					.setQy(query.getQy())
-					.setSbbm(query.getSbbm())
-					.setCzr(query.getCzr())
-					.setWd(query.getWd())
-					//.setZkPort(this.port)
-					//.setZnodeParent("/" + this.znodeParent)
+					.setTableName(this.tableName).setFr(query.getFr())
+					.setQy(query.getQy()).setSbbm(query.getSbbm())
+					.setCzr(query.getCzr()).setWd(query.getWd())
 					.build();
-			table = new HTable(conf, tableName);
-		
-			Map<byte[], ByteString> re = table.coprocessorService(
-					ServiceQuery.class, null, null,
+			//执行coprocessor查询
+			Map<byte[], ByteString> res = table.coprocessorService(
+					ServiceQuery.class, startkey, endkey,
 					new Batch.Call<ServiceQuery, ByteString>() {
 						public ByteString call(ServiceQuery instance)
 								throws IOException {
@@ -93,11 +76,14 @@ public class FuzzyQueryThread implements Runnable {
 							BlockingRpcCallback<QueryResponse> rpccall = new BlockingRpcCallback<QueryResponse>();
 							instance.query(controller, req, rpccall);
 							QueryResponse resp = rpccall.get();
+							
 							return resp.getRetWord();
 						}
 					});
-			for (ByteString str : re.values()) {
+			//对返回结果去重
+			for (ByteString str : res.values()) {
 				String results = str.toStringUtf8();
+//				System.out.println(" results ========= : "+results);
 				if(results != null && !results.equals("")){
 					results = results.substring(0,results.lastIndexOf("#"));
 					String[] datas = results.split("#");
@@ -108,12 +94,11 @@ public class FuzzyQueryThread implements Runnable {
 							}
 						}
 					}
-					LOG.info("table ["+ tableName +"] query record count :" + datas.length);
 				}
 			}
-			// 设置线程的查询状态为完成
-			this.manager.setStatus(tableName, true);
-		} catch (Exception e) {
+			;
+			manager.setStatus(serverName, true);
+		}catch(Exception e){
 			e.printStackTrace();
 		} catch (Throwable e) {
 			e.printStackTrace();
@@ -126,7 +111,7 @@ public class FuzzyQueryThread implements Runnable {
 				}
 			}
 		}
-	}
 
+	}
 
 }

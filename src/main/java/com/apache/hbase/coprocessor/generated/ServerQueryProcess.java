@@ -135,46 +135,6 @@ public final class ServerQueryProcess {
      */
     com.google.protobuf.ByteString
         getTableNameBytes();
-
-    // required string quorums = 10;
-    /**
-     * <code>required string quorums = 10;</code>
-     */
-    boolean hasQuorums();
-    /**
-     * <code>required string quorums = 10;</code>
-     */
-    java.lang.String getQuorums();
-    /**
-     * <code>required string quorums = 10;</code>
-     */
-    com.google.protobuf.ByteString
-        getQuorumsBytes();
-
-    // required uint32 zk_port = 11;
-    /**
-     * <code>required uint32 zk_port = 11;</code>
-     */
-    boolean hasZkPort();
-    /**
-     * <code>required uint32 zk_port = 11;</code>
-     */
-    int getZkPort();
-
-    // required string znode_parent = 12;
-    /**
-     * <code>required string znode_parent = 12;</code>
-     */
-    boolean hasZnodeParent();
-    /**
-     * <code>required string znode_parent = 12;</code>
-     */
-    java.lang.String getZnodeParent();
-    /**
-     * <code>required string znode_parent = 12;</code>
-     */
-    com.google.protobuf.ByteString
-        getZnodeParentBytes();
   }
   /**
    * Protobuf type {@code QueryRequest}
@@ -270,21 +230,6 @@ public final class ServerQueryProcess {
             case 74: {
               bitField0_ |= 0x00000100;
               tableName_ = input.readBytes();
-              break;
-            }
-            case 82: {
-              bitField0_ |= 0x00000200;
-              quorums_ = input.readBytes();
-              break;
-            }
-            case 88: {
-              bitField0_ |= 0x00000400;
-              zkPort_ = input.readUInt32();
-              break;
-            }
-            case 98: {
-              bitField0_ |= 0x00000800;
-              znodeParent_ = input.readBytes();
               break;
             }
           }
@@ -660,108 +605,6 @@ public final class ServerQueryProcess {
       }
     }
 
-    // required string quorums = 10;
-    public static final int QUORUMS_FIELD_NUMBER = 10;
-    private java.lang.Object quorums_;
-    /**
-     * <code>required string quorums = 10;</code>
-     */
-    public boolean hasQuorums() {
-      return ((bitField0_ & 0x00000200) == 0x00000200);
-    }
-    /**
-     * <code>required string quorums = 10;</code>
-     */
-    public java.lang.String getQuorums() {
-      java.lang.Object ref = quorums_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          quorums_ = s;
-        }
-        return s;
-      }
-    }
-    /**
-     * <code>required string quorums = 10;</code>
-     */
-    public com.google.protobuf.ByteString
-        getQuorumsBytes() {
-      java.lang.Object ref = quorums_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        quorums_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
-    // required uint32 zk_port = 11;
-    public static final int ZK_PORT_FIELD_NUMBER = 11;
-    private int zkPort_;
-    /**
-     * <code>required uint32 zk_port = 11;</code>
-     */
-    public boolean hasZkPort() {
-      return ((bitField0_ & 0x00000400) == 0x00000400);
-    }
-    /**
-     * <code>required uint32 zk_port = 11;</code>
-     */
-    public int getZkPort() {
-      return zkPort_;
-    }
-
-    // required string znode_parent = 12;
-    public static final int ZNODE_PARENT_FIELD_NUMBER = 12;
-    private java.lang.Object znodeParent_;
-    /**
-     * <code>required string znode_parent = 12;</code>
-     */
-    public boolean hasZnodeParent() {
-      return ((bitField0_ & 0x00000800) == 0x00000800);
-    }
-    /**
-     * <code>required string znode_parent = 12;</code>
-     */
-    public java.lang.String getZnodeParent() {
-      java.lang.Object ref = znodeParent_;
-      if (ref instanceof java.lang.String) {
-        return (java.lang.String) ref;
-      } else {
-        com.google.protobuf.ByteString bs = 
-            (com.google.protobuf.ByteString) ref;
-        java.lang.String s = bs.toStringUtf8();
-        if (bs.isValidUtf8()) {
-          znodeParent_ = s;
-        }
-        return s;
-      }
-    }
-    /**
-     * <code>required string znode_parent = 12;</code>
-     */
-    public com.google.protobuf.ByteString
-        getZnodeParentBytes() {
-      java.lang.Object ref = znodeParent_;
-      if (ref instanceof java.lang.String) {
-        com.google.protobuf.ByteString b = 
-            com.google.protobuf.ByteString.copyFromUtf8(
-                (java.lang.String) ref);
-        znodeParent_ = b;
-        return b;
-      } else {
-        return (com.google.protobuf.ByteString) ref;
-      }
-    }
-
     private void initFields() {
       gzh_ = "";
       start_ = 0L;
@@ -772,9 +615,6 @@ public final class ServerQueryProcess {
       sbbm_ = "";
       czr_ = "";
       tableName_ = "";
-      quorums_ = "";
-      zkPort_ = 0;
-      znodeParent_ = "";
     }
     private byte memoizedIsInitialized = -1;
     public final boolean isInitialized() {
@@ -794,18 +634,6 @@ public final class ServerQueryProcess {
         return false;
       }
       if (!hasTableName()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-      if (!hasQuorums()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-      if (!hasZkPort()) {
-        memoizedIsInitialized = 0;
-        return false;
-      }
-      if (!hasZnodeParent()) {
         memoizedIsInitialized = 0;
         return false;
       }
@@ -842,15 +670,6 @@ public final class ServerQueryProcess {
       }
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
         output.writeBytes(9, getTableNameBytes());
-      }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
-        output.writeBytes(10, getQuorumsBytes());
-      }
-      if (((bitField0_ & 0x00000400) == 0x00000400)) {
-        output.writeUInt32(11, zkPort_);
-      }
-      if (((bitField0_ & 0x00000800) == 0x00000800)) {
-        output.writeBytes(12, getZnodeParentBytes());
       }
       getUnknownFields().writeTo(output);
     }
@@ -896,18 +715,6 @@ public final class ServerQueryProcess {
       if (((bitField0_ & 0x00000100) == 0x00000100)) {
         size += com.google.protobuf.CodedOutputStream
           .computeBytesSize(9, getTableNameBytes());
-      }
-      if (((bitField0_ & 0x00000200) == 0x00000200)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(10, getQuorumsBytes());
-      }
-      if (((bitField0_ & 0x00000400) == 0x00000400)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeUInt32Size(11, zkPort_);
-      }
-      if (((bitField0_ & 0x00000800) == 0x00000800)) {
-        size += com.google.protobuf.CodedOutputStream
-          .computeBytesSize(12, getZnodeParentBytes());
       }
       size += getUnknownFields().getSerializedSize();
       memoizedSerializedSize = size;
@@ -977,21 +784,6 @@ public final class ServerQueryProcess {
         result = result && getTableName()
             .equals(other.getTableName());
       }
-      result = result && (hasQuorums() == other.hasQuorums());
-      if (hasQuorums()) {
-        result = result && getQuorums()
-            .equals(other.getQuorums());
-      }
-      result = result && (hasZkPort() == other.hasZkPort());
-      if (hasZkPort()) {
-        result = result && (getZkPort()
-            == other.getZkPort());
-      }
-      result = result && (hasZnodeParent() == other.hasZnodeParent());
-      if (hasZnodeParent()) {
-        result = result && getZnodeParent()
-            .equals(other.getZnodeParent());
-      }
       result = result &&
           getUnknownFields().equals(other.getUnknownFields());
       return result;
@@ -1040,18 +832,6 @@ public final class ServerQueryProcess {
       if (hasTableName()) {
         hash = (37 * hash) + TABLENAME_FIELD_NUMBER;
         hash = (53 * hash) + getTableName().hashCode();
-      }
-      if (hasQuorums()) {
-        hash = (37 * hash) + QUORUMS_FIELD_NUMBER;
-        hash = (53 * hash) + getQuorums().hashCode();
-      }
-      if (hasZkPort()) {
-        hash = (37 * hash) + ZK_PORT_FIELD_NUMBER;
-        hash = (53 * hash) + getZkPort();
-      }
-      if (hasZnodeParent()) {
-        hash = (37 * hash) + ZNODE_PARENT_FIELD_NUMBER;
-        hash = (53 * hash) + getZnodeParent().hashCode();
       }
       hash = (29 * hash) + getUnknownFields().hashCode();
       memoizedHashCode = hash;
@@ -1180,12 +960,6 @@ public final class ServerQueryProcess {
         bitField0_ = (bitField0_ & ~0x00000080);
         tableName_ = "";
         bitField0_ = (bitField0_ & ~0x00000100);
-        quorums_ = "";
-        bitField0_ = (bitField0_ & ~0x00000200);
-        zkPort_ = 0;
-        bitField0_ = (bitField0_ & ~0x00000400);
-        znodeParent_ = "";
-        bitField0_ = (bitField0_ & ~0x00000800);
         return this;
       }
 
@@ -1250,18 +1024,6 @@ public final class ServerQueryProcess {
           to_bitField0_ |= 0x00000100;
         }
         result.tableName_ = tableName_;
-        if (((from_bitField0_ & 0x00000200) == 0x00000200)) {
-          to_bitField0_ |= 0x00000200;
-        }
-        result.quorums_ = quorums_;
-        if (((from_bitField0_ & 0x00000400) == 0x00000400)) {
-          to_bitField0_ |= 0x00000400;
-        }
-        result.zkPort_ = zkPort_;
-        if (((from_bitField0_ & 0x00000800) == 0x00000800)) {
-          to_bitField0_ |= 0x00000800;
-        }
-        result.znodeParent_ = znodeParent_;
         result.bitField0_ = to_bitField0_;
         onBuilt();
         return result;
@@ -1319,19 +1081,6 @@ public final class ServerQueryProcess {
           tableName_ = other.tableName_;
           onChanged();
         }
-        if (other.hasQuorums()) {
-          bitField0_ |= 0x00000200;
-          quorums_ = other.quorums_;
-          onChanged();
-        }
-        if (other.hasZkPort()) {
-          setZkPort(other.getZkPort());
-        }
-        if (other.hasZnodeParent()) {
-          bitField0_ |= 0x00000800;
-          znodeParent_ = other.znodeParent_;
-          onChanged();
-        }
         this.mergeUnknownFields(other.getUnknownFields());
         return this;
       }
@@ -1350,18 +1099,6 @@ public final class ServerQueryProcess {
           return false;
         }
         if (!hasTableName()) {
-          
-          return false;
-        }
-        if (!hasQuorums()) {
-          
-          return false;
-        }
-        if (!hasZkPort()) {
-          
-          return false;
-        }
-        if (!hasZnodeParent()) {
           
           return false;
         }
@@ -1967,187 +1704,6 @@ public final class ServerQueryProcess {
   }
   bitField0_ |= 0x00000100;
         tableName_ = value;
-        onChanged();
-        return this;
-      }
-
-      // required string quorums = 10;
-      private java.lang.Object quorums_ = "";
-      /**
-       * <code>required string quorums = 10;</code>
-       */
-      public boolean hasQuorums() {
-        return ((bitField0_ & 0x00000200) == 0x00000200);
-      }
-      /**
-       * <code>required string quorums = 10;</code>
-       */
-      public java.lang.String getQuorums() {
-        java.lang.Object ref = quorums_;
-        if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          quorums_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>required string quorums = 10;</code>
-       */
-      public com.google.protobuf.ByteString
-          getQuorumsBytes() {
-        java.lang.Object ref = quorums_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          quorums_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>required string quorums = 10;</code>
-       */
-      public Builder setQuorums(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000200;
-        quorums_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>required string quorums = 10;</code>
-       */
-      public Builder clearQuorums() {
-        bitField0_ = (bitField0_ & ~0x00000200);
-        quorums_ = getDefaultInstance().getQuorums();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>required string quorums = 10;</code>
-       */
-      public Builder setQuorumsBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000200;
-        quorums_ = value;
-        onChanged();
-        return this;
-      }
-
-      // required uint32 zk_port = 11;
-      private int zkPort_ ;
-      /**
-       * <code>required uint32 zk_port = 11;</code>
-       */
-      public boolean hasZkPort() {
-        return ((bitField0_ & 0x00000400) == 0x00000400);
-      }
-      /**
-       * <code>required uint32 zk_port = 11;</code>
-       */
-      public int getZkPort() {
-        return zkPort_;
-      }
-      /**
-       * <code>required uint32 zk_port = 11;</code>
-       */
-      public Builder setZkPort(int value) {
-        bitField0_ |= 0x00000400;
-        zkPort_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>required uint32 zk_port = 11;</code>
-       */
-      public Builder clearZkPort() {
-        bitField0_ = (bitField0_ & ~0x00000400);
-        zkPort_ = 0;
-        onChanged();
-        return this;
-      }
-
-      // required string znode_parent = 12;
-      private java.lang.Object znodeParent_ = "";
-      /**
-       * <code>required string znode_parent = 12;</code>
-       */
-      public boolean hasZnodeParent() {
-        return ((bitField0_ & 0x00000800) == 0x00000800);
-      }
-      /**
-       * <code>required string znode_parent = 12;</code>
-       */
-      public java.lang.String getZnodeParent() {
-        java.lang.Object ref = znodeParent_;
-        if (!(ref instanceof java.lang.String)) {
-          java.lang.String s = ((com.google.protobuf.ByteString) ref)
-              .toStringUtf8();
-          znodeParent_ = s;
-          return s;
-        } else {
-          return (java.lang.String) ref;
-        }
-      }
-      /**
-       * <code>required string znode_parent = 12;</code>
-       */
-      public com.google.protobuf.ByteString
-          getZnodeParentBytes() {
-        java.lang.Object ref = znodeParent_;
-        if (ref instanceof String) {
-          com.google.protobuf.ByteString b = 
-              com.google.protobuf.ByteString.copyFromUtf8(
-                  (java.lang.String) ref);
-          znodeParent_ = b;
-          return b;
-        } else {
-          return (com.google.protobuf.ByteString) ref;
-        }
-      }
-      /**
-       * <code>required string znode_parent = 12;</code>
-       */
-      public Builder setZnodeParent(
-          java.lang.String value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000800;
-        znodeParent_ = value;
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>required string znode_parent = 12;</code>
-       */
-      public Builder clearZnodeParent() {
-        bitField0_ = (bitField0_ & ~0x00000800);
-        znodeParent_ = getDefaultInstance().getZnodeParent();
-        onChanged();
-        return this;
-      }
-      /**
-       * <code>required string znode_parent = 12;</code>
-       */
-      public Builder setZnodeParentBytes(
-          com.google.protobuf.ByteString value) {
-        if (value == null) {
-    throw new NullPointerException();
-  }
-  bitField0_ |= 0x00000800;
-        znodeParent_ = value;
         onChanged();
         return this;
       }
@@ -2859,16 +2415,15 @@ public final class ServerQueryProcess {
       descriptor;
   static {
     java.lang.String[] descriptorData = {
-      "\n\030ServerQueryProcess.proto\"\301\001\n\014QueryRequ" +
+      "\n\030ServerQueryProcess.proto\"\211\001\n\014QueryRequ" +
       "est\022\013\n\003gzh\030\001 \002(\t\022\r\n\005start\030\002 \002(\004\022\013\n\003end\030\003" +
       " \002(\004\022\n\n\002fr\030\004 \001(\t\022\n\n\002qy\030\005 \001(\t\022\n\n\002wd\030\006 \001(\t" +
       "\022\014\n\004sbbm\030\007 \001(\t\022\013\n\003czr\030\010 \001(\t\022\021\n\ttableName" +
-      "\030\t \002(\t\022\017\n\007quorums\030\n \002(\t\022\017\n\007zk_port\030\013 \002(\r" +
-      "\022\024\n\014znode_parent\030\014 \002(\t\" \n\rQueryResponse\022" +
-      "\017\n\007retWord\030\001 \002(\01426\n\014ServiceQuery\022&\n\005quer" +
-      "y\022\r.QueryRequest\032\016.QueryResponseBD\n&com." +
-      "apache.hbase.coprocessor.generatedB\022Serv" +
-      "erQueryProcessH\001\210\001\001\240\001\001"
+      "\030\t \002(\t\" \n\rQueryResponse\022\017\n\007retWord\030\001 \002(\014" +
+      "26\n\014ServiceQuery\022&\n\005query\022\r.QueryRequest" +
+      "\032\016.QueryResponseBD\n&com.apache.hbase.cop" +
+      "rocessor.generatedB\022ServerQueryProcessH\001" +
+      "\210\001\001\240\001\001"
     };
     com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner assigner =
       new com.google.protobuf.Descriptors.FileDescriptor.InternalDescriptorAssigner() {
@@ -2880,7 +2435,7 @@ public final class ServerQueryProcess {
           internal_static_QueryRequest_fieldAccessorTable = new
             com.google.protobuf.GeneratedMessage.FieldAccessorTable(
               internal_static_QueryRequest_descriptor,
-              new java.lang.String[] { "Gzh", "Start", "End", "Fr", "Qy", "Wd", "Sbbm", "Czr", "TableName", "Quorums", "ZkPort", "ZnodeParent", });
+              new java.lang.String[] { "Gzh", "Start", "End", "Fr", "Qy", "Wd", "Sbbm", "Czr", "TableName", });
           internal_static_QueryResponse_descriptor =
             getDescriptor().getMessageTypes().get(1);
           internal_static_QueryResponse_fieldAccessorTable = new

@@ -6,23 +6,23 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.NavigableMap;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
+import org.apache.hadoop.hbase.HRegionInfo;
+import org.apache.hadoop.hbase.ServerName;
 import org.apache.hadoop.hbase.client.Get;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.HTableInterface;
 import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.ResultScanner;
-import org.apache.hadoop.hbase.client.Scan;
-import org.apache.hadoop.hbase.filter.Filter;
-import org.apache.hadoop.hbase.filter.InclusiveStopFilter;
 import org.apache.hadoop.hbase.util.Bytes;
 import org.apache.log4j.Logger;
 
-import com.apache.hbase.coprocessor.generated.ServerQueryProcess.QueryRequest;
 import com.apache.hbase.query.util.PropertiesHelper;
 
 public class HBaseQuery implements Query{
@@ -39,6 +39,8 @@ public class HBaseQuery implements Query{
 	
 	private String tablePrefix ;
 	
+	private String timeout;
+	
 	private static Configuration conf = null;
 	
 
@@ -48,7 +50,8 @@ public class HBaseQuery implements Query{
 		this.quorum = PropertiesHelper.getInstance().getValue("hbase.zookeeper.quorum");
 		this.port = Integer.parseInt(PropertiesHelper.getInstance().getValue("hbase.zookeeper.property.clientPort"));
 		this.znodeParent = PropertiesHelper.getInstance().getValue("zookeeper.znode.parent");
-		this.tablePrefix = PropertiesHelper.getInstance().getValue("hbas.table.prefix");
+		this.tablePrefix = PropertiesHelper.getInstance().getValue("hbase.table.prefix");
+		this.timeout = PropertiesHelper.getInstance().getValue("hbase.rpc.timeout");
 		
 		conf = HBaseConfiguration.create();
 		conf.set("hbase.zookeeper.quorum", this.quorum);
@@ -115,7 +118,7 @@ public class HBaseQuery implements Query{
 				} else {
 					manager.setStatus(tableName, false);
 					//启动查询线程
-					Thread thread = new Thread(new QueryThread(manager,tableName,results,query,this.quorum,this.port,this.znodeParent));
+					Thread thread = new Thread(new QueryThread(manager,tableName,results,query,quorum,this.port,this.znodeParent));
 					thread.start();
 				}
 			}
@@ -126,9 +129,14 @@ public class HBaseQuery implements Query{
 				hbaseadmin.close();
 			}
 		}
-
-		
 	}
+
+	private void convertMap(NavigableMap<HRegionInfo, ServerName> regions,Map<String,HRegionInfo> infos){
+		for(HRegionInfo region :regions.keySet()){
+			infos.put(regions.get(region).getServerName(), region);
+		}
+	}
+	
 	
 	/**
 	 * 模糊匹配查询
@@ -143,24 +151,39 @@ public class HBaseQuery implements Query{
 		//获取时间每天的时间范围区间
 		List<String> scopes = generalScope(query.getStart(),query.getEnd());
 		HBaseAdmin hbaseadmin = null;
+		HTable table = null;
 		try{
+			Map<String,HRegionInfo> infos = new HashMap<String,HRegionInfo>();
+			String tableName = "";
 			for(String date : scopes){
 				String[] datas = date.split("#");
 				String start = datas[0];
 				Date day = format.parse(start);
-				String tableName = this.tablePrefix + format1.format(day);
+				String tn = this.tablePrefix + format1.format(day) ;
+				tableName += tn +",";
+				
 				hbaseadmin = new HBaseAdmin(conf);
 				//如果表不存在
-				if(!hbaseadmin.tableExists(tableName)){
+				if(!hbaseadmin.tableExists(tn)){
 					LOG.info(tableName + "表未找到");
 					manager.setStatus(tableName, true);
 				} else {
-					manager.setStatus(tableName, false);
-					//启动查询线程
-					Thread thread = new Thread(new FuzzyQueryThread(manager,tableName,results,query,this.quorum,this.port,this.znodeParent));
-					thread.start();
+					table = new HTable(conf, tn);
+					NavigableMap<HRegionInfo, ServerName> regions = table.getRegionLocations();
+					convertMap(regions,infos);
 				}
 			}
+			LOG.info("tableName : " + tableName);
+			LOG.info("NavigableMap : " + infos);
+			//启动查询线程
+			for (String serverName : infos.keySet()) {
+				manager.setStatus(serverName, false);
+				HRegionInfo region = infos.get(serverName);
+				String tn = region.getTable().getNameAsString();
+				Thread thread = new Thread(new CoprocessorQueryThread(tn,conf,manager,tableName,results,query,region,serverName));
+				thread.start();				
+			}
+	
 		}catch(Exception e){
 			e.printStackTrace();
 		}finally{
@@ -239,11 +262,7 @@ public class HBaseQuery implements Query{
 
 	public static void main(String[] args) throws IOException, ParseException {
 		HBaseQuery query = new HBaseQuery();
-//		query.selectForResultScannerByRange("FSN_20140702", "XVZQ0000001404144147", "XVZQ9999991404576269");
-//		//1404230400
-//		//1404230547
-//		//1404316799
-//		query.scaneByPrefixFilter("FSN_20140711", "BSGW");
+
 				
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Date date = new Date();
@@ -258,22 +277,20 @@ public class HBaseQuery implements Query{
 		object.setFr("45");
 		object.setQy("17");
 		object.setCzr("");//操作人
-		object.setSbbm("004505");//设备编码
+		object.setSbbm("");//设备编码
 		object.setWd("0045");//网点
 		object.setStart(start);
 		Date t1 = new Date();
 		
-//		String startRowkey = query.addZeroForNum("UBYL",10,"0") ;
-//		String endRowkey = query.addZeroForNum("UBYL",10,"9");
-//		String result = query.selectByRowkeyRange("FSN_20140729",startRowkey,endRowkey,object);
-//		String
-//		System.out.println(result);
-		for(int i = 0 ; i < 10 ; i ++){
+
 			List<String> list = query.query(object);
 			for(String record : list){
 				System.out.println(record);
 			}
-		}
+
+
+
+		
 		Date t2 = new Date();
 		System.out.println("end time : " + format.format(t2));
 		System.out.println("total cost time : " + (t2.getTime() - t1.getTime()) / 1000 + " s");
@@ -283,7 +300,7 @@ public class HBaseQuery implements Query{
 	
 	public String selectByRowkeyRange(String tableName, String startRowkey,
 			String endRowkey,QueryObject object) throws IOException {
-		HTableInterface table = null;
+		HTable table = null;
 		StringBuffer buffer = new StringBuffer();
 		HBaseAdmin hbaseadmin = null;
 		try{
@@ -295,62 +312,15 @@ public class HBaseQuery implements Query{
 			} else {
 				
 				table = new HTable(conf, tableName);
-				Scan scan = new Scan();
-				scan.setStartRow(startRowkey.getBytes());
-				//设置scan的扫描范围由startRowkey开始
-				Filter filter =new InclusiveStopFilter(endRowkey.getBytes());
-				scan.setFilter(filter);
-				//设置scan扫描到endRowkey停止，因为setStopRow是开区间，InclusiveStopFilter设置的是闭区间
-				ResultScanner rs = table.getScanner(scan);
-				int count = 0;
-				for (Result r : rs) {
-					boolean frRight = true;
-					boolean qyRight = true;
-					boolean sbbmRight = true;
-					boolean czrRight = true;
-					boolean wdRight = true;
-					boolean sjRight = true;
-					String value = new String(r.getValue("cf".getBytes(), "c1".getBytes()));
-					LOG.info("table ["+ tableName +"] query result value  :" + value);
-					String[] datas = value.split(",");
-					//如果法人条件不为空，并且数据中的法人和查询条件中的值不一致，结果为false
-					if(!isEmpty(object.getFr()) && !object.getFr().equals(datas[2])){
-						frRight = false;
-					}
-					//如果区域条件不为空，并且数据中的区域和查询条件中的值不一致，结果为false
-					if(!isEmpty(object.getQy()) && !object.getQy().equals(datas[1])){
-						qyRight = false;
-					}
-					//如果设备编码条件不为空，并且数据中的设备编码和查询条件中的值不一致，结果为false
-					if(!isEmpty(object.getSbbm()) && !object.getSbbm().equals(datas[4])){
-						sbbmRight = false;
-					}
-					//如果操作人条件不为空，并且数据中的操作人和查询条件中的值不一致，结果为false
-					if(!isEmpty(object.getCzr()) && !object.getCzr().equals(datas[5])){
-						czrRight = false;
-					}
-					//如果网点条件不为空，并且数据中的网点和查询条件中的值不一致，结果为false
-					if(!isEmpty(object.getWd()) && !object.getWd().equals(datas[3])){
-						wdRight = false;
-					}
-					long time = Long.parseLong(datas[0]);
-					
-					//判断开始和结束时间
-//					if( object.getStart() <=time && time <= object.getEnd() ){
-//						sjRight = true;
-//					} else {
-//						sjRight = false;
-//					}
-					if(wdRight && frRight && sbbmRight && czrRight && qyRight){
-						LOG.info("table ["+ tableName +"] query status  :" + true);
-						LOG.info("table ["+ tableName +"] query value  :" + value);
-						buffer.append(value);
-						buffer.append("#");
-						count ++;
-					}
+				Map<String,HRegionInfo> regionInfos = new HashMap<String,HRegionInfo>();
+				NavigableMap<HRegionInfo, ServerName> regions = table.getRegionLocations();
+				for(HRegionInfo region :regions.keySet()){
+					regionInfos.put(regions.get(region).getServerName(), region);
 				}
-				LOG.info("table ["+ tableName +"] query record count :" + count);
-				return buffer.toString();
+				
+				for(String region :regionInfos.keySet()){
+					System.out.println(region);
+				}
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
