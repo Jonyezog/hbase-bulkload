@@ -2,7 +2,6 @@ package com.apache.hbase.query;
 
 import java.io.IOException;
 import java.text.SimpleDateFormat;
-import java.util.List;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
@@ -31,8 +30,6 @@ public class QueryThread implements Runnable {
 	
 	private String tableName;
 	
-	private List<String> results;
-	
 	private QueryObject query;
 	
 	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
@@ -44,11 +41,10 @@ public class QueryThread implements Runnable {
 	private String znodeParent;
 
 
-	public QueryThread(QueryStatusManager manager,String tableName,List<String> results,
+	public QueryThread(QueryStatusManager manager,String tableName,
 			QueryObject query,final String quorums, final int port, final String znodeParent){
 		this.manager = manager;
 		this.tableName = tableName;
-		this.results = results;
 		this.query = query;
 		this.quorums = quorums;
 		this.port = port;
@@ -128,7 +124,7 @@ public class QueryThread implements Runnable {
 					wdRight = false;
 				}
 				if(wdRight && frRight && sbbmRight && czrRight && qyRight){
-					this.results.add(value);
+					manager.getResults().add(value);
 					count ++;
 				}
 			}

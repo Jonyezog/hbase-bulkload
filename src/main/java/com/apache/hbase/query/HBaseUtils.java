@@ -33,7 +33,7 @@ public class HBaseUtils {
 		quorum = PropertiesHelper.getInstance().getValue("hbase.zookeeper.quorum");
 		port = PropertiesHelper.getInstance().getValue("hbase.zookeeper.property.clientPort");
 		znodeParent = PropertiesHelper.getInstance().getValue("zookeeper.znode.parent");
-		this.tablePrefix = PropertiesHelper.getInstance().getValue("hbas.table.prefix");
+		this.tablePrefix = PropertiesHelper.getInstance().getValue("hbase.table.prefix");
 		this.hdfsPrefix = PropertiesHelper.getInstance().getValue("hdfs.prefix");
 	}
 

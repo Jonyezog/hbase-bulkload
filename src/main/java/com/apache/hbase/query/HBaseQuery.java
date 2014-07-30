@@ -39,7 +39,6 @@ public class HBaseQuery implements Query{
 	
 	private String tablePrefix ;
 	
-	private String timeout;
 	
 	private static Configuration conf = null;
 	
@@ -51,7 +50,6 @@ public class HBaseQuery implements Query{
 		this.port = Integer.parseInt(PropertiesHelper.getInstance().getValue("hbase.zookeeper.property.clientPort"));
 		this.znodeParent = PropertiesHelper.getInstance().getValue("zookeeper.znode.parent");
 		this.tablePrefix = PropertiesHelper.getInstance().getValue("hbase.table.prefix");
-		this.timeout = PropertiesHelper.getInstance().getValue("hbase.rpc.timeout");
 		
 		conf = HBaseConfiguration.create();
 		conf.set("hbase.zookeeper.quorum", this.quorum);
@@ -98,7 +96,7 @@ public class HBaseQuery implements Query{
 	 * @return
 	 * @throws Exception 
 	 */
-	private void exactMatch(QueryObject query,QueryStatusManager manager,List<String> results) throws Exception {
+	private void exactMatch(QueryObject query,QueryStatusManager manager) throws Exception {
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 		SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd");
 		//获取时间每天的时间范围区间
@@ -118,7 +116,7 @@ public class HBaseQuery implements Query{
 				} else {
 					manager.setStatus(tableName, false);
 					//启动查询线程
-					Thread thread = new Thread(new QueryThread(manager,tableName,results,query,quorum,this.port,this.znodeParent));
+					Thread thread = new Thread(new QueryThread(manager,tableName,query,quorum,this.port,this.znodeParent));
 					thread.start();
 				}
 			}
@@ -133,7 +131,8 @@ public class HBaseQuery implements Query{
 
 	private void convertMap(NavigableMap<HRegionInfo, ServerName> regions,Map<String,HRegionInfo> infos){
 		for(HRegionInfo region :regions.keySet()){
-			infos.put(regions.get(region).getServerName(), region);
+			String tableName = region.getTable().getNameAsString();
+			infos.put(regions.get(region).getServerName()+ "@" + tableName, region);
 		}
 	}
 	
@@ -145,7 +144,7 @@ public class HBaseQuery implements Query{
 	 * @param results
 	 * @throws Exception
 	 */
-	private void fuzzyMatch(QueryObject query,QueryStatusManager manager,List<String> results) throws Exception {
+	private void fuzzyMatch(QueryObject query,QueryStatusManager manager) throws Exception {
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 		SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd");
 		//获取时间每天的时间范围区间
@@ -173,14 +172,14 @@ public class HBaseQuery implements Query{
 					convertMap(regions,infos);
 				}
 			}
-			LOG.info("tableName : " + tableName);
 			LOG.info("NavigableMap : " + infos);
 			//启动查询线程
 			for (String serverName : infos.keySet()) {
 				manager.setStatus(serverName, false);
 				HRegionInfo region = infos.get(serverName);
 				String tn = region.getTable().getNameAsString();
-				Thread thread = new Thread(new CoprocessorQueryThread(tn,conf,manager,tableName,results,query,region,serverName));
+				LOG.info("tableName : " + tn);
+				Thread thread = new Thread(new CoprocessorQueryThread(tn,conf,manager,tableName,query,region,serverName));
 				thread.start();				
 			}
 	
@@ -236,25 +235,26 @@ public class HBaseQuery implements Query{
 	 * @return
 	 */
 	public List<String> query(QueryObject query) {
-		List<String> results = new ArrayList<String>();
 		String gzh = query.getGzh();
 		QueryStatusManager manager = new QueryStatusManager();
+		manager.clear();
 		try{
 			//冠字号精确匹配查询,使用Rowkey范围过滤查询
 			if(gzh != null && gzh.length() == 10){
-				exactMatch(query,manager,results);
-			} else {//否则如果冠字号小于10位，但是要大于4位，也按照范围查询
-				this.fuzzyMatch(query, manager, results);
+				exactMatch(query,manager);
+			} else {
+				//否则如果冠字号小于10位，但是要大于4位，也按照范围查询
+				this.fuzzyMatch(query, manager);
 			}
 		}catch(Exception e){
 			e.printStackTrace();
 		}
 		while(!manager.isCompleted()){
-			//LOG.info("query is running... ");
+			
 		}
 		LOG.info("query completed");
-		LOG.info("query total count :" + results.size());
-		return results;
+		LOG.info("query total count :" + manager.getResults().size());
+		return manager.getResults();
 	}	
 
 
@@ -262,8 +262,6 @@ public class HBaseQuery implements Query{
 
 	public static void main(String[] args) throws IOException, ParseException {
 		HBaseQuery query = new HBaseQuery();
-
-				
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Date date = new Date();
 		date.setTime(1404176406000l);
@@ -278,76 +276,18 @@ public class HBaseQuery implements Query{
 		object.setQy("17");
 		object.setCzr("");//操作人
 		object.setSbbm("");//设备编码
-		object.setWd("0045");//网点
+		object.setWd("");//网点
 		object.setStart(start);
 		Date t1 = new Date();
-		
 
-			List<String> list = query.query(object);
-			for(String record : list){
-				System.out.println(record);
-			}
-
-
-
-		
+		List<String> list = query.query(object);
+		for(String record : list){
+			System.out.println(record);
+		}				
 		Date t2 = new Date();
 		System.out.println("end time : " + format.format(t2));
 		System.out.println("total cost time : " + (t2.getTime() - t1.getTime()) / 1000 + " s");
-//			
 	}
 	
-	
-	public String selectByRowkeyRange(String tableName, String startRowkey,
-			String endRowkey,QueryObject object) throws IOException {
-		HTable table = null;
-		StringBuffer buffer = new StringBuffer();
-		HBaseAdmin hbaseadmin = null;
-		try{
-			hbaseadmin = new HBaseAdmin(conf);
-			//如果表不存在
-			if(!hbaseadmin.tableExists(tableName)){
-				LOG.info(tableName + " table not found!");
-				return null;
-			} else {
-				
-				table = new HTable(conf, tableName);
-				Map<String,HRegionInfo> regionInfos = new HashMap<String,HRegionInfo>();
-				NavigableMap<HRegionInfo, ServerName> regions = table.getRegionLocations();
-				for(HRegionInfo region :regions.keySet()){
-					regionInfos.put(regions.get(region).getServerName(), region);
-				}
-				
-				for(String region :regionInfos.keySet()){
-					System.out.println(region);
-				}
-			}
-		} catch (Exception e) {
-			e.printStackTrace();
-		}	finally{
-			if(table != null){
-				table.close();
-			}
-		}
-		return null;
-	}
-	
-	private String addZeroForNum(String str, int strLength,String ch) {
-	     int strLen = str.length();
-	     StringBuffer sb = null;
-	     while (strLen < strLength) {
-	           sb = new StringBuffer();
-	           sb.append(str).append(ch);
-	           str = sb.toString();
-	           strLen = str.length();
-	     }
-	     return str;
-	 }	
-	
-	private boolean isEmpty(String value){
-		if(value != null && !value.equals("")){
-			return false;
-		}
-		return true;
-	}	
+
 }

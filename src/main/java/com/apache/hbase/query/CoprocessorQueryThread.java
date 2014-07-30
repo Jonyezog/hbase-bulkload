@@ -23,7 +23,7 @@ public class CoprocessorQueryThread implements Runnable {
 
 	private String tableName;
 
-	private List<String> results;
+//	private List<String> results;
 
 	private QueryObject query;
 	
@@ -38,10 +38,10 @@ public class CoprocessorQueryThread implements Runnable {
 	private String tn ;
 	
 	public CoprocessorQueryThread(String tn,Configuration conf,QueryStatusManager manager, String tableName,
-			List<String> results, QueryObject query,HRegionInfo region,String serverName) {
+			QueryObject query,HRegionInfo region,String serverName) {
 		this.manager = manager;
 		this.query = query;
-		this.results = results;
+//		this.results = results;
 		this.tableName = tableName;
 		this.region = region;
 		this.conf = conf;
@@ -56,8 +56,6 @@ public class CoprocessorQueryThread implements Runnable {
 			table = new HTable(conf, tn);
 			long starttime = format.parse(query.getStart()).getTime() / 1000;
 			long endtime = format.parse(query.getEnd()).getTime() / 1000;
-			byte[] startkey = region.getStartKey();
-			byte[] endkey = region.getEndKey();		
 			//构造查询条件
 			final QueryRequest req = QueryRequest.newBuilder()
 					.setStart(starttime).setEnd(endtime)
@@ -68,7 +66,7 @@ public class CoprocessorQueryThread implements Runnable {
 					.build();
 			//执行coprocessor查询
 			Map<byte[], ByteString> res = table.coprocessorService(
-					ServiceQuery.class, startkey, endkey,
+					ServiceQuery.class, null, null,
 					new Batch.Call<ServiceQuery, ByteString>() {
 						public ByteString call(ServiceQuery instance)
 								throws IOException {
@@ -76,27 +74,22 @@ public class CoprocessorQueryThread implements Runnable {
 							BlockingRpcCallback<QueryResponse> rpccall = new BlockingRpcCallback<QueryResponse>();
 							instance.query(controller, req, rpccall);
 							QueryResponse resp = rpccall.get();
-							
 							return resp.getRetWord();
 						}
 					});
 			//对返回结果去重
 			for (ByteString str : res.values()) {
 				String results = str.toStringUtf8();
-//				System.out.println(" results ========= : "+results);
 				if(results != null && !results.equals("")){
 					results = results.substring(0,results.lastIndexOf("#"));
 					String[] datas = results.split("#");
 					if (datas != null) {
 						for(String rec : datas){
-							if(!this.results.contains(rec)){
-								this.results.add(rec);
-							}
+							manager.getResults().add(rec);
 						}
 					}
 				}
 			}
-			;
 			manager.setStatus(serverName, true);
 		}catch(Exception e){
 			e.printStackTrace();

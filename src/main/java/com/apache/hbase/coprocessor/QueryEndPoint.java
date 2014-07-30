@@ -92,13 +92,14 @@ public class QueryEndPoint extends ServerQueryProcess.ServiceQuery implements Co
 	public String selectByRowkeyFuzzy(String tableName, String startRowkey,
 			String endRowkey,QueryRequest request) throws IOException {
 		StringBuffer buffer = new StringBuffer("");
+		InternalScanner scanner = null;
 		try{
 			Scan scan = new Scan();
 			scan.setStartRow(startRowkey.getBytes());
 			//设置scan的扫描范围由startRowkey开始
 			Filter filter =new InclusiveStopFilter(endRowkey.getBytes());
 			scan.setFilter(filter);
-			InternalScanner scanner = env.getRegion().getScanner(scan);
+			scanner = env.getRegion().getScanner(scan);
 			List<Cell> results = new ArrayList<Cell>();
 			boolean hasMore = false;
 			do {
@@ -110,7 +111,11 @@ public class QueryEndPoint extends ServerQueryProcess.ServiceQuery implements Co
 			return buffer.toString();
 		} catch (Exception e) {
 			e.printStackTrace();
-		} 
+		} finally{
+			if(scanner != null){
+				scanner.close();
+			}
+		}
 		return null;
 	}
 	

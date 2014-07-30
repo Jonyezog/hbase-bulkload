@@ -22,8 +22,6 @@ public class FuzzyQueryLocalThread implements Runnable {
 
 	private String tableName;
 
-	private List<String> results;
-
 	private QueryObject query;
 
 	private String quorums;
@@ -39,7 +37,6 @@ public class FuzzyQueryLocalThread implements Runnable {
 			final int port, final String znodeParent, final String timeout) {
 		this.manager = manager;
 		this.tableName = tableName;
-		this.results = results;
 		this.query = query;
 		this.quorums = quorums;
 		this.port = port;
@@ -60,7 +57,7 @@ public class FuzzyQueryLocalThread implements Runnable {
 				this.manager.setStatus(serverName, false);
 				HRegionInfo region = infos.get(serverName);
 				String tn = region.getTable().getNameAsString();
-				Thread thread = new Thread(new CoprocessorQueryThread(tn,conf,manager,tableName,results,query,region,serverName));
+				Thread thread = new Thread(new CoprocessorQueryThread(tn,conf,manager,tableName,query,region,serverName));
 				thread.start();				
 			}
 
