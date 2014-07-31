@@ -9,6 +9,11 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 
+/**
+ * hdfs工具类，删除文件
+ * @author zhangfeng
+ *
+ */
 public class HDFS {
 	
 	public static void deleteFileDir(String hdfsPath)

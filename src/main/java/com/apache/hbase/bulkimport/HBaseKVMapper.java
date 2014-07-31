@@ -1,8 +1,6 @@
 package com.apache.hbase.bulkimport;
 
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.KeyValue;
@@ -13,7 +11,9 @@ import org.apache.hadoop.mapreduce.Mapper;
 
 
 /**
- * Mapper Class
+ * HBase数据导入的Mapper类
+ * @author zhangfeng
+ *
  */
 public class HBaseKVMapper extends Mapper<LongWritable, Text, ImmutableBytesWritable, KeyValue> {
 	// 列簇名称
@@ -53,12 +53,12 @@ public class HBaseKVMapper extends Mapper<LongWritable, Text, ImmutableBytesWrit
 		}
 		//设置rowkey(冠字号+时间)
 		String rowkey = fields[11] + fields[0];
-//		String rowkey = fields[9] + fields[0];
 		hKey.set(rowkey.getBytes());
 		// Save KeyValue Pair
 		kv = new KeyValue(hKey.get(), SRV_COL_FAM,HColumnEnum.SRV_COL_B.getColumnName(), value.toString().getBytes());
-		// Write KV to HBase
+		// 将数据写到hfile文件中
 		context.write(hKey, kv);
+		//记录记录总数
 		context.getCounter(Driver.MY_COUNTER.NUM_MSGS).increment(1);
 	}
 }

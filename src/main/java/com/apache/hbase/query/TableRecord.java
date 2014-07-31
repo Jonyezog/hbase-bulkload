@@ -1,5 +1,10 @@
 package com.apache.hbase.query;
 
+/**
+ * 表记录对象
+ * @author zhangfeng
+ *
+ */
 public class TableRecord {
 
 	//总记录数

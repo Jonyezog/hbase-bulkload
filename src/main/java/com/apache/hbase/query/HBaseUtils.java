@@ -10,6 +10,11 @@ import org.apache.log4j.Logger;
 
 import com.apache.hbase.query.util.PropertiesHelper;
 
+/**
+ * hbase操作工具类，主要提供删表操作，同时删除hdfs上的zip文件
+ * @author zhangfeng
+ *
+ */
 public class HBaseUtils {
 
 	private static final Logger LOG = Logger.getLogger(HBaseUtils.class);
@@ -18,11 +23,11 @@ public class HBaseUtils {
 	private static String quorum ;
 	//zk port
 	private static String port;
-	
+	//hbase在zk上注册的根节点名称
 	private static String znodeParent ;
-	
+	//表前缀
 	private String tablePrefix;
-	
+	//zip文件在hdfs上的路径前缀
 	private String hdfsPrefix;
 	
 	private static Configuration conf;

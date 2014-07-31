@@ -25,27 +25,28 @@ import org.apache.log4j.Logger;
 
 import com.apache.hbase.query.util.PropertiesHelper;
 
+/**
+ * 对外统一提供的数据查询接口
+ * @author zhangfeng
+ *
+ */
 public class HBaseQuery implements Query{
 	
 	private static final Logger LOG = Logger.getLogger(HBaseQuery.class);
-
-
 	//zookeeper 地址
 	private String quorum ;
 	//zk port
 	private int port;
 	
+	//hbase在zk上注册的根节点名称
 	private String znodeParent ;
-	
+	//hbase的表前缀
 	private String tablePrefix ;
 	
-	
+	//hbase配置信息
 	private static Configuration conf = null;
 	
-
-	
 	public HBaseQuery(){
-		
 		this.quorum = PropertiesHelper.getInstance().getValue("hbase.zookeeper.quorum");
 		this.port = Integer.parseInt(PropertiesHelper.getInstance().getValue("hbase.zookeeper.property.clientPort"));
 		this.znodeParent = PropertiesHelper.getInstance().getValue("zookeeper.znode.parent");
@@ -59,7 +60,13 @@ public class HBaseQuery implements Query{
 
 
 
-
+	/**
+	 * 根据开始和结束日止，获取中间的每一天查询的开始和结束时间，开始和结束时间之间使用#隔开，例如:2014-07-01 00:23:12#2014-07-01 23:59:59
+	 * @param start
+	 * @param end
+	 * @return
+	 * @throws ParseException
+	 */
 	private List<String> generalScope(String start, String end) throws ParseException {
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
         Date startDate = format.parse(start);
@@ -107,11 +114,13 @@ public class HBaseQuery implements Query{
 				String[] datas = date.split("#");
 				String start = datas[0];
 				Date day = format.parse(start);
+				//生成表名
 				String tableName = this.tablePrefix + format1.format(day);
 				hbaseadmin = new HBaseAdmin(conf);
 				//如果表不存在
 				if(!hbaseadmin.tableExists(tableName)){
 					LOG.info(tableName + "表未找到");
+					//如果表不存在，设置该表的查询状态为完成
 					manager.setStatus(tableName, true);
 				} else {
 					manager.setStatus(tableName, false);
@@ -129,6 +138,11 @@ public class HBaseQuery implements Query{
 		}
 	}
 
+	/**
+	 * 获取每张表的其中一个region所在的region server名称，并建立和region的对应关系
+	 * @param regions
+	 * @param infos
+	 */
 	private void convertMap(NavigableMap<HRegionInfo, ServerName> regions,Map<String,HRegionInfo> infos){
 		for(HRegionInfo region :regions.keySet()){
 			String tableName = region.getTable().getNameAsString();
@@ -147,7 +161,7 @@ public class HBaseQuery implements Query{
 	private void fuzzyMatch(QueryObject query,QueryStatusManager manager) throws Exception {
 		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd");
 		SimpleDateFormat format1 = new SimpleDateFormat("yyyyMMdd");
-		//获取时间每天的时间范围区间
+		//获取查询条件的时间范围区间
 		List<String> scopes = generalScope(query.getStart(),query.getEnd());
 		HBaseAdmin hbaseadmin = null;
 		HTable table = null;
@@ -155,9 +169,11 @@ public class HBaseQuery implements Query{
 			Map<String,HRegionInfo> infos = new HashMap<String,HRegionInfo>();
 			String tableName = "";
 			for(String date : scopes){
+				//获取开始时间
 				String[] datas = date.split("#");
 				String start = datas[0];
 				Date day = format.parse(start);
+				//表名
 				String tn = this.tablePrefix + format1.format(day) ;
 				tableName += tn +",";
 				
@@ -168,18 +184,19 @@ public class HBaseQuery implements Query{
 					manager.setStatus(tableName, true);
 				} else {
 					table = new HTable(conf, tn);
+					//获取表region的location信息
 					NavigableMap<HRegionInfo, ServerName> regions = table.getRegionLocations();
 					convertMap(regions,infos);
 				}
 			}
-			LOG.info("NavigableMap : " + infos);
-			//启动查询线程
+			//启动查询线程，每张表在其其中一个region所在的region server上启动一个查询线程
 			for (String serverName : infos.keySet()) {
+				//设置线程的查询状态为false，没有完成，线程的查询状态改变交给线程自己处理
 				manager.setStatus(serverName, false);
 				HRegionInfo region = infos.get(serverName);
 				String tn = region.getTable().getNameAsString();
-				LOG.info("tableName : " + tn);
-				Thread thread = new Thread(new CoprocessorQueryThread(tn,conf,manager,tableName,query,region,serverName));
+				//启动查询线程
+				Thread thread = new Thread(new CoprocessorQueryThread(tn,conf,manager,tableName,query,serverName));
 				thread.start();				
 			}
 	
@@ -194,7 +211,7 @@ public class HBaseQuery implements Query{
 	}
 	
 	/**
-	 * 获取表中的记录数
+	 * 根据表名获取该表中的记录总数
 	 * @param tableName
 	 * @return
 	 * @throws IOException
@@ -202,7 +219,9 @@ public class HBaseQuery implements Query{
 	public TableRecord getRecordForTable(String tableName) throws IOException{
 		HTableInterface table = null;
 		try{
+			//创建htable对象
 			table = new HTable(conf,"FSN_TOTAL");
+			//通过表名get该表名对应的rowkey在表中的记录
 			Get get = new Get(Bytes.toBytes(tableName));
 			Result result = table.get(get);
 			String totalRecord = "0";
@@ -256,38 +275,5 @@ public class HBaseQuery implements Query{
 		LOG.info("query total count :" + manager.getResults().size());
 		return manager.getResults();
 	}	
-
-
-
-
-	public static void main(String[] args) throws IOException, ParseException {
-		HBaseQuery query = new HBaseQuery();
-		SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Date date = new Date();
-		date.setTime(1404176406000l);
-		System.out.println(format.format(date));
-		String start = "2014-07-01 08:56:02";
-		String end = "2014-07-29 00:43:38";
-		String gzh = "UBYL";//冠字号至少要输入前四位字母
-		QueryObject object = new QueryObject();
-		object.setEnd(end);
-		object.setGzh(gzh);
-		object.setFr("45");
-		object.setQy("17");
-		object.setCzr("");//操作人
-		object.setSbbm("");//设备编码
-		object.setWd("");//网点
-		object.setStart(start);
-		Date t1 = new Date();
-
-		List<String> list = query.query(object);
-		for(String record : list){
-			System.out.println(record);
-		}				
-		Date t2 = new Date();
-		System.out.println("end time : " + format.format(t2));
-		System.out.println("total cost time : " + (t2.getTime() - t1.getTime()) / 1000 + " s");
-	}
-	
 
 }

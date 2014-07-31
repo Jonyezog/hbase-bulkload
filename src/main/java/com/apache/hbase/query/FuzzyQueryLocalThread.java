@@ -57,7 +57,7 @@ public class FuzzyQueryLocalThread implements Runnable {
 				this.manager.setStatus(serverName, false);
 				HRegionInfo region = infos.get(serverName);
 				String tn = region.getTable().getNameAsString();
-				Thread thread = new Thread(new CoprocessorQueryThread(tn,conf,manager,tableName,query,region,serverName));
+				Thread thread = new Thread(new CoprocessorQueryThread(tn,conf,manager,tableName,query,serverName));
 				thread.start();				
 			}
 

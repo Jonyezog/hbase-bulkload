@@ -16,7 +16,7 @@ import org.apache.log4j.Logger;
 
 
 /**
- * 查询线程
+ * 精确查询线程
  * @author zhangfeng
  *
  */
@@ -25,19 +25,22 @@ public class QueryThread implements Runnable {
 	private static final Logger LOG = Logger.getLogger(QueryThread.class);
 	
 	private static Configuration conf = null;
-	
+	//查询状态管理器
 	private QueryStatusManager manager;
 	
+	//表名
 	private String tableName;
 	
+	//查询对象
 	private QueryObject query;
 	
 	private SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 	
+	//zk服务器地址
 	private String quorums;
-
+	//zk 端口
 	private int port;
-
+	//zk在服务器上注册的根节点名称
 	private String znodeParent;
 
 
@@ -60,6 +63,7 @@ public class QueryThread implements Runnable {
 		try {
 			long starttime = format.parse(query.getStart()).getTime() / 1000;
 			long endtime = format.parse(query.getEnd()).getTime() / 1000;
+			//生成开始和结束rowkey
 			String startRowkey = query.getGzh() + starttime;
 			String endRowkey = query.getGzh() + endtime;
 			//执行查询

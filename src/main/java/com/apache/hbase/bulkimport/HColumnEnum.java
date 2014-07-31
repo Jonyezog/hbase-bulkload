@@ -1,7 +1,9 @@
 package com.apache.hbase.bulkimport;
 
 /**
- * HBase table columns for the 'srv' column family
+ * 定义Hbase table column family
+ * @author zhangfeng
+ *
  */
 public enum HColumnEnum {
 	SRV_COL_B("c1".getBytes());

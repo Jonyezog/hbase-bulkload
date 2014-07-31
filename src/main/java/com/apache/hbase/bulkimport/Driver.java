@@ -33,12 +33,18 @@ import org.mortbay.log.Log;
 import com.apache.hbase.query.HDFS;
 
 /**
- * HBase bulk import<br>
+ * HBase bulk import
  * Data preparation MapReduce job driver
  * <ol>
  * <li>args[0]: HDFS input path
  * <li>args[1]: HDFS output path
  * <li>args[2]: HBase table name
+ * <li>args[3]: hbase.zookeeper.quorum
+ * <li>args[4]: hbase.zookeeper.property.clientPort
+ * <li>args[5]: zookeeper.znode.parent
+ * <li>args[6]: 预查分hbase表region的startKey
+ * <li>args[7]: 预查分hbase表region的endkey
+ * <li>args[8]: 预查分hbase表region的数量
  * </ol>
  */
 @SuppressWarnings("deprecation")
@@ -50,7 +56,7 @@ public class Driver {
 	};
 
 	/**
-	 * 创建表
+	 * 创建hbase表，对表根据给定的startkey和endkey进行预分配region
 	 * 
 	 * @param conf
 	 * @param args
@@ -61,16 +67,16 @@ public class Driver {
 		HBaseAdmin admin = new HBaseAdmin(conf);
 		// 判断表是否存在，如果不存在创建表，如果存在直接插入数据
 		if (!admin.tableExists(args[2])) {
-			// set region startkey and endkey
+			//设置预拆分表的region数量，startkey，endkey
 			int numRegions = Integer.parseInt(args[8]);
 			String startKey = args[6];
 			String endKey = args[7];
-			// column family
+			//创建表的column family
 			HColumnDescriptor cf = new HColumnDescriptor("cf");
-			// set compression type
+			//设置数据的压缩方式为SNAPPY
 			cf.setCompactionCompressionType(Compression.Algorithm.SNAPPY);
 			cf.setCompressionType(Compression.Algorithm.SNAPPY);
-			// htable desc
+			//创建表
 			HTableDescriptor td = new HTableDescriptor(args[2]);
 			td.addFamily(cf);
 			admin.createTable(td, startKey.getBytes(), endKey.getBytes(),
@@ -89,6 +95,7 @@ public class Driver {
 		job.setMapperClass(HBaseKVMapper.class);
 		job.setMapOutputKeyClass(ImmutableBytesWritable.class);
 		job.setMapOutputValueClass(KeyValue.class);
+		//初始化表的reducer数
 		TableMapReduceUtil.initTableReducerJob(args[2], null, job);
 
 		job.setInputFormatClass(TextInputFormat.class);
@@ -115,7 +122,7 @@ public class Driver {
 
 		// 等待Hfile文件生成完成
 		job.waitForCompletion(true);
-
+		//获取job计数器中记录的数据
 		Counters counters = job.getCounters();
 		Counter separatorError = counters.findCounter(Driver.MY_COUNTER.PARSE_ERRORS);
 		Log.info("Separator error record number :" + separatorError.getValue());
@@ -127,17 +134,15 @@ public class Driver {
 		LoadIncrementalHFiles loader = new LoadIncrementalHFiles(hbaseconfig);
 		loader.doBulkLoad(new Path(args[1]), hTable);
 
-		//向Hbase中插入数据
+		//记录hbase每张表的记录总数
 		createRecordTable(hbaseconfig,"FSN_TOTAL");
 		String totalRecords = records.getValue() +"";
-		Log.info("totalRecords : " +totalRecords);
 		String invalRecords = fieldError.getValue() +"";
-		Log.info("invalRecords : " +invalRecords);
 		String errorRecords = separatorError.getValue() +"";
-		Log.info("errorRecords : " + errorRecords);
 		insertData(hbaseconfig,args[2],totalRecords,invalRecords,errorRecords);
 		// 删除输入的数据源
 		Log.info("delete hdfs file ：" + args[0]);
+		//删除txt文件
 		for (String file : files) {
 			HDFS.deleteFileDir(file);
 		}
@@ -145,7 +150,15 @@ public class Driver {
 
 	}
 	
-	
+	/**
+	 * 向Hbase标记录总数表中插入数据
+	 * @param conf
+	 * @param rowkey
+	 * @param records
+	 * @param invalRecord
+	 * @param errorRecord
+	 * @throws Exception
+	 */
 	private static void insertData(Configuration conf,String rowkey,String records,String invalRecord,String errorRecord) throws Exception{
 		HTable table = null;
 		Put put = new Put(Bytes.toBytes(rowkey));
@@ -153,6 +166,7 @@ public class Driver {
 			table = new HTable(conf,"FSN_TOTAL");
 			Get get = new Get(Bytes.toBytes(rowkey));
 			Result result = table.get(get);
+			//如果是后续继续向表中插入数据，则更新该表的记录总数
 			if(result != null && !result.isEmpty()){
 				long tRecord = Long.parseLong(new String(result.getValue("cf".getBytes(), "totalRecord".getBytes())));
 				long iRecord = Long.parseLong(new String(result.getValue("cf".getBytes(), "invalRecord".getBytes())));

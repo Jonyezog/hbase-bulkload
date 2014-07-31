@@ -26,8 +26,12 @@ import com.google.protobuf.RpcCallback;
 import com.google.protobuf.RpcController;
 import com.google.protobuf.Service;
 
+/**
+ * Hbase endpiont Coprocessor server端数据过滤接口实现
+ * @author zhangfeng
+ *
+ */
 public class QueryEndPoint extends ServerQueryProcess.ServiceQuery implements CoprocessorService,Coprocessor {
-	private static final Log LOG = LogFactory.getLog(QueryEndPoint.class);
 
 	private RegionCoprocessorEnvironment env;
 
@@ -50,7 +54,9 @@ public class QueryEndPoint extends ServerQueryProcess.ServiceQuery implements Co
 	public void query(RpcController controller, QueryRequest request,
 			RpcCallback<QueryResponse> done) {
 		try{
+			//start rowkey
 			String startRowkey = addZeroForNum(request.getGzh(),10,"0") + request.getStart();
+			//end rowkey
 			String endRowkey = addZeroForNum(request.getGzh(),10,"9") + request.getEnd();
 			String result = this.selectByRowkeyFuzzy(request.getTableName(),startRowkey,endRowkey,request);
 			QueryResponse resp = QueryResponse.newBuilder().setRetWord(ByteString.copyFromUtf8(result.toString())).build();
@@ -94,17 +100,21 @@ public class QueryEndPoint extends ServerQueryProcess.ServiceQuery implements Co
 		StringBuffer buffer = new StringBuffer("");
 		InternalScanner scanner = null;
 		try{
+			//定义数据扫描对象
 			Scan scan = new Scan();
+			//设置扫描的start key
 			scan.setStartRow(startRowkey.getBytes());
 			//设置scan的扫描范围由startRowkey开始
 			Filter filter =new InclusiveStopFilter(endRowkey.getBytes());
 			scan.setFilter(filter);
+			//过去region的scanner对象
 			scanner = env.getRegion().getScanner(scan);
 			List<Cell> results = new ArrayList<Cell>();
 			boolean hasMore = false;
 			do {
+				//获取结果
 				hasMore = scanner.next(results);
-				//匹配记录
+				//对结果进行匹配，找出符合条件的记录
 				matchRecord(results,buffer,request);
 				results.clear();
 			} while (hasMore);
@@ -113,12 +123,19 @@ public class QueryEndPoint extends ServerQueryProcess.ServiceQuery implements Co
 			e.printStackTrace();
 		} finally{
 			if(scanner != null){
+				//关闭scanner对象，防止出现region一直打开不关闭，造成regionserver宕机的情况
 				scanner.close();
 			}
 		}
 		return null;
 	}
 	
+	/**
+	 * 对查询的结果进行匹配，找出符合条件的记录
+	 * @param results 查询到的结果
+	 * @param buffer 结果对象
+	 * @param request 查询的条件对象
+	 */
 	public void matchRecord(List<Cell> results,StringBuffer buffer,QueryRequest request){
 		for (Cell kv : results) {
 			KeyValue keyValue = (KeyValue)kv;
@@ -165,7 +182,11 @@ public class QueryEndPoint extends ServerQueryProcess.ServiceQuery implements Co
 		}
 	}
 	
-	
+	/**
+	 * 判断字符串是否为空
+	 * @param value
+	 * @return
+	 */
 	private boolean isEmpty(String value){
 		if(value != null && !value.equals("")){
 			return false;
