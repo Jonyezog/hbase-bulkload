@@ -28,10 +28,12 @@ hdfs.prefix=hdfs://julong/data_hbase/zip/
 hbas.table.prefix=FSN_
 
 
-
-
-
 DeleteTableDemo.java 删除Hbase表的demo
 HDFS.java 从HDFS上获取文件的demo
 QueryDemo.java 调用Hbase查询接口查询数据的Demo
+
+
+
+
+
 
