@@ -1,19 +1,18 @@
 package com.apache.hbase.query;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-import java.util.Map;
-
+import com.apache.hbase.coprocessor.generated.ServerQueryProcess.QueryRequest;
+import com.apache.hbase.coprocessor.generated.ServerQueryProcess.QueryResponse;
+import com.apache.hbase.coprocessor.generated.ServerQueryProcess.ServiceQuery;
+import com.google.protobuf.ByteString;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.coprocessor.Batch;
 import org.apache.hadoop.hbase.ipc.BlockingRpcCallback;
 import org.apache.hadoop.hbase.ipc.ServerRpcController;
 
-import com.apache.hbase.coprocessor.generated.ServerQueryProcess.QueryRequest;
-import com.apache.hbase.coprocessor.generated.ServerQueryProcess.QueryResponse;
-import com.apache.hbase.coprocessor.generated.ServerQueryProcess.ServiceQuery;
-import com.google.protobuf.ByteString;
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Map;
 
 /**
  * 基于Coprocessor查询操作的线程

@@ -1,16 +1,14 @@
 package com.apache.hbase.io.file;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
-
+import com.apache.hbase.query.util.PropertiesHelper;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.hadoop.hbase.client.Put;
 
-import com.apache.hbase.query.util.PropertiesHelper;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.UUID;
 
 public class PutTest {
 

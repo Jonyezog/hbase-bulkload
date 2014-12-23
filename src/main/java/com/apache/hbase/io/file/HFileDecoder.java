@@ -1,9 +1,5 @@
 package com.apache.hbase.io.file;
 
-import java.net.URI;
-
-
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
@@ -12,6 +8,8 @@ import org.apache.hadoop.hbase.io.hfile.CacheConfig;
 import org.apache.hadoop.hbase.io.hfile.HFile;
 import org.apache.hadoop.hbase.io.hfile.HFileScanner;
 import org.apache.hadoop.hbase.util.Bytes;
+
+import java.net.URI;
 public class HFileDecoder {
 
 	public static void main(String[] args) throws Exception{

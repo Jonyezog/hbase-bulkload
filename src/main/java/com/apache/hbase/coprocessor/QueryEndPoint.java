@@ -1,11 +1,13 @@
 package com.apache.hbase.coprocessor;
 
-import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-
-import org.apache.commons.logging.Log;
-import org.apache.commons.logging.LogFactory;
+import com.apache.hbase.coprocessor.generated.ServerQueryProcess;
+import com.apache.hbase.coprocessor.generated.ServerQueryProcess.QueryRequest;
+import com.apache.hbase.coprocessor.generated.ServerQueryProcess.QueryResponse;
+import com.google.protobuf.ByteString;
+import com.google.protobuf.RpcCallback;
+import com.google.protobuf.RpcController;
+import com.google.protobuf.Service;
+import org.apache.hadoop.hbase.Cell;
 import org.apache.hadoop.hbase.Coprocessor;
 import org.apache.hadoop.hbase.CoprocessorEnvironment;
 import org.apache.hadoop.hbase.KeyValue;
@@ -16,15 +18,10 @@ import org.apache.hadoop.hbase.coprocessor.RegionCoprocessorEnvironment;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.InclusiveStopFilter;
 import org.apache.hadoop.hbase.regionserver.InternalScanner;
-import org.apache.hadoop.hbase.Cell;
 
-import com.apache.hbase.coprocessor.generated.ServerQueryProcess;
-import com.apache.hbase.coprocessor.generated.ServerQueryProcess.QueryRequest;
-import com.apache.hbase.coprocessor.generated.ServerQueryProcess.QueryResponse;
-import com.google.protobuf.ByteString;
-import com.google.protobuf.RpcCallback;
-import com.google.protobuf.RpcController;
-import com.google.protobuf.Service;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Hbase endpiont Coprocessor server端数据过滤接口实现
@@ -90,7 +87,6 @@ public class QueryEndPoint extends ServerQueryProcess.ServiceQuery implements Co
 	 * @param tableName
 	 * @param startRowkey
 	 * @param endRowkey
-	 * @param conf
 	 * @param request
 	 * @return
 	 * @throws IOException

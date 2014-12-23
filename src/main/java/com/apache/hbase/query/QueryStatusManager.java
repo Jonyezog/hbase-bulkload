@@ -1,10 +1,6 @@
 package com.apache.hbase.query;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 /**
  * 多线程查询状态及查询结果管理器

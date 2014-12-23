@@ -1,18 +1,14 @@
 package com.apache.hbase.query;
 
-import java.io.IOException;
-import java.text.SimpleDateFormat;
-
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
-import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.client.HTableInterface;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.ResultScanner;
-import org.apache.hadoop.hbase.client.Scan;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.filter.Filter;
 import org.apache.hadoop.hbase.filter.InclusiveStopFilter;
 import org.apache.log4j.Logger;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
 
 
 /**

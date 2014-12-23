@@ -18,7 +18,6 @@ public class PropertiesHelper {
 	
 	/**
 	 * 构造函数
-	 * @param is 属性文件输入流
 	 * @throws Exception
 	 */
 	private PropertiesHelper() {

@@ -1,20 +1,13 @@
 package com.apache.hbase.bulkimport;
 
-import java.io.IOException;
-import java.io.InterruptedIOException;
-
+import com.apache.hbase.query.HDFS;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.fs.Path;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.HColumnDescriptor;
 import org.apache.hadoop.hbase.HTableDescriptor;
 import org.apache.hadoop.hbase.KeyValue;
-import org.apache.hadoop.hbase.client.Get;
-import org.apache.hadoop.hbase.client.HBaseAdmin;
-import org.apache.hadoop.hbase.client.HTable;
-import org.apache.hadoop.hbase.client.Put;
-import org.apache.hadoop.hbase.client.Result;
-import org.apache.hadoop.hbase.client.RetriesExhaustedWithDetailsException;
+import org.apache.hadoop.hbase.client.*;
 import org.apache.hadoop.hbase.io.ImmutableBytesWritable;
 import org.apache.hadoop.hbase.io.compress.Compression;
 import org.apache.hadoop.hbase.mapreduce.HFileOutputFormat;
@@ -30,7 +23,7 @@ import org.apache.hadoop.mapreduce.lib.output.FileOutputFormat;
 import org.apache.log4j.Logger;
 import org.mortbay.log.Log;
 
-import com.apache.hbase.query.HDFS;
+import java.io.IOException;
 
 /**
  * HBase bulk import
@@ -197,7 +190,6 @@ public class Driver {
 	 * 创建表
 	 * 
 	 * @param conf
-	 * @param args
 	 * @throws Exception
 	 */
 	private static void createRecordTable(Configuration conf, String tableName)

@@ -1,14 +1,13 @@
 package com.apache.hbase.query;
 
 
+import com.apache.hbase.query.util.PropertiesHelper;
 import org.apache.hadoop.conf.Configuration;
 import org.apache.hadoop.hbase.HBaseConfiguration;
 import org.apache.hadoop.hbase.client.Delete;
 import org.apache.hadoop.hbase.client.HBaseAdmin;
 import org.apache.hadoop.hbase.client.HTable;
 import org.apache.log4j.Logger;
-
-import com.apache.hbase.query.util.PropertiesHelper;
 
 /**
  * hbase操作工具类，主要提供删表操作，同时删除hdfs上的zip文件

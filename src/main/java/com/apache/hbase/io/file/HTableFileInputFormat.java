@@ -1,13 +1,9 @@
 package com.apache.hbase.io.file;
 
-import java.io.IOException;
-
 import org.apache.hadoop.io.Text;
-import org.apache.hadoop.mapred.FileInputFormat;
-import org.apache.hadoop.mapred.InputSplit;
-import org.apache.hadoop.mapred.JobConf;
-import org.apache.hadoop.mapred.RecordReader;
-import org.apache.hadoop.mapred.Reporter;
+import org.apache.hadoop.mapred.*;
+
+import java.io.IOException;
 
 public class HTableFileInputFormat extends FileInputFormat<Text, Text> {
 

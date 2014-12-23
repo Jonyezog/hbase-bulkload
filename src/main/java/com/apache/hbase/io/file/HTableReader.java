@@ -1,12 +1,12 @@
 package com.apache.hbase.io.file;
 
-import java.io.IOException;
-
 import org.apache.hadoop.io.Text;
 import org.apache.hadoop.mapreduce.InputSplit;
 import org.apache.hadoop.mapreduce.RecordReader;
 import org.apache.hadoop.mapreduce.TaskAttemptContext;
 import org.apache.hadoop.util.LineReader;
+
+import java.io.IOException;
 
 public class HTableReader extends RecordReader<Text ,Text>{
 
