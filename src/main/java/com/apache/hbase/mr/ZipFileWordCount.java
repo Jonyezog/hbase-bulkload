@@ -1,6 +1,7 @@
 package com.apache.hbase.mr;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.StringTokenizer;
 
 import org.apache.hadoop.conf.Configuration;
@@ -22,21 +23,29 @@ import org.apache.log4j.Logger;
 public class ZipFileWordCount {
     private static final Logger log = Logger.getLogger(ZipFileWordCount.class);
 
+    private final static int recordLength = 1644;
+    
     public static class TokenizerMapper extends Mapper<Text, BytesWritable, Text, IntWritable> {
         private final static IntWritable one = new IntWritable(1);
         private Text word = new Text();
 
         public void map(Text key, BytesWritable value, Context context) throws IOException, InterruptedException {
-            log.info("Map key : " + key);
-            String content = new String( value.getBytes(), "UTF-8" );
-            log.info("Map value : " + content);
-            StringTokenizer itr = new StringTokenizer(content);
-            while (itr.hasMoreTokens()) {
-                String wordStr = itr.nextToken();
-                word.set(wordStr);
-                log.info("Map word : " + wordStr);
-                context.write(word, one);
-            }
+        	byte[] fsnBuffer = value.getBytes();
+        	ByteBuffer byteBuffer = ByteBuffer.wrap(fsnBuffer);
+			int readLen = 32;
+			byte[] hb = new byte[readLen];
+			byteBuffer.get(hb);
+        	while(readLen < fsnBuffer.length){
+        		byte[] bf = new byte[recordLength];
+        		byteBuffer.get(bf, 0, recordLength);
+        		FSNDecoder decoder = new FSNDecoder(bf);
+        		System.out.println(decoder.getRecord());
+        		readLen += recordLength;    
+        		word.set(decoder.getRecord());
+        		context.write(word, one);
+        	}
+
+ 
         }
     }
 
@@ -44,14 +53,11 @@ public class ZipFileWordCount {
         private IntWritable result = new IntWritable();
 
         public void reduce(Text key, Iterable<IntWritable> values, Context context) throws IOException, InterruptedException {
-            log.info("Reduce key : " + key);
-            log.info("Reduce value : " + values);
             int sum = 0;
             for (IntWritable val : values) {
                 sum += val.get();
             }
             result.set(sum);
-            log.info("Reduce sum : " + sum);
             context.write(key, result);
         }
     }

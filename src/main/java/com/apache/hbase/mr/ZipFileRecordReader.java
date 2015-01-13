@@ -89,10 +89,10 @@ public class ZipFileRecordReader extends RecordReader<Text, BytesWritable> {
 
         // 获取文件名称
         currentKey = new Text( entry.getName() );
-
+        System.out.println("======= : " +currentKey);
         // 读取文件内容
         ByteArrayOutputStream bos = new ByteArrayOutputStream();
-        byte[] temp = new byte[8192];
+        byte[] temp = new byte[8196];
         while ( true )
         {
             int bytesRead = 0;
@@ -114,7 +114,7 @@ public class ZipFileRecordReader extends RecordReader<Text, BytesWritable> {
         zip.closeEntry();
 
         // 未压缩内容
-        currentValue = new BytesWritable( bos.toByteArray() );
+        currentValue = new BytesWritable(bos.toByteArray() );
         return true;
     }
 

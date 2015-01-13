@@ -144,7 +144,6 @@ public class HBaseQuery implements Query{
 	 * 模糊匹配查询
 	 * @param query
 	 * @param manager
-	 * @param results
 	 * @throws Exception
 	 */
 	private void fuzzyMatch(QueryObject query,QueryStatusManager manager) throws Exception {
@@ -263,6 +262,21 @@ public class HBaseQuery implements Query{
 		LOG.info("query completed");
 		LOG.info("query total count :" + manager.getResults().size());
 		return manager.getResults();
-	}	
+	}
 
+
+	public static void main(String[] args) {
+		Query query = new HBaseQuery();
+		QueryObject obj = new QueryObject();
+		obj.setGzh("ASWN");
+		obj.setStart("2014-10-10 00:00:00");
+		obj.setEnd("2014-10-10 23:59:59");
+		obj.setFr("");
+		obj.setQy("");
+		obj.setSbbm("");
+		obj.setWd("");
+		obj.setCzr("");
+		List<String> result = query.query(obj);
+		System.out.println(result.size());
+	}
 }

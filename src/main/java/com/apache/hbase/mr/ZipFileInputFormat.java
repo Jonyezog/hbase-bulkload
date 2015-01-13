@@ -23,7 +23,10 @@ public class ZipFileInputFormat extends FileInputFormat<Text, BytesWritable> {
     private static boolean isLenient = false;
 
     /**
-     * ZIP files are not splitable
+     * 用来确定你是否可以切分一个块，默认返回为true，表示只要数据块大于hdfs block size，
+     * 那么它将会被切分。但有时候你不希望切分一个文件，
+     * 例如某些二进制序列文件不能被切分时，你就需要重载该函数使其返回false
+     * 我们这里是zip文件，不能拆分，所以返回false
      */
     @Override
     protected boolean isSplitable( JobContext context, Path filename )
